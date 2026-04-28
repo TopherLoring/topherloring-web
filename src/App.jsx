@@ -138,29 +138,39 @@ const portfolioData = {
 };
 
 const styleSheet = `
-  @keyframes auroraShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+  @keyframes iridescentFlow {
+    0% { background-position: 0% 0%; }
+    50% { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
   }
 
   .iridescent-text {
     background: linear-gradient(
-      to right, 
+      -45deg, 
       #ffffff 0%, 
-      #94a3b8 15%, 
-      #60a5fa 30%, 
-      #c084fc 45%, 
-      #f472b6 60%, 
-      #fbbf24 75%, 
-      #94a3b8 85%, 
+      #a5f3fc 10%, 
+      #38bdf8 25%, 
+      #818cf8 40%, 
+      #c084fc 55%, 
+      #f472b6 70%, 
+      #fbbf24 85%, 
       #ffffff 100%
-    );
-    background-size: 300% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: auroraShift 8s linear infinite;
+    ) !important;
+    background-size: 200% 200% !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+    animation: iridescentFlow 5s ease-in-out infinite !important;
+    display: inline-block !important;
+    line-height: 1.25 !important;
+    padding-bottom: 0.15em !important;
+    position: relative;
+    z-index: 1;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.15);
   }
 
   @keyframes float {
@@ -242,7 +252,7 @@ export default function App() {
         <div className={`absolute top-[30%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[180vw] h-[180vw] md:w-[1200px] md:h-[1200px] border rounded-full animate-spin-slow transition-colors duration-700 z-0 delay-100 ${currentTheme.border || 'border-white/[0.02]'}`} style={{ animationDirection: 'reverse', animationDuration: '90s' }} />
       </div>
 
-      {/* --- CENTRAL HUB (Brand Mark & Summary) --- */}
+      {/* --- CENTRAL HUB --- */}
       <div 
         className={`absolute top-[30%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] pointer-events-none ${
           activeDrawer ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
@@ -252,26 +262,26 @@ export default function App() {
         <div className="flex flex-col items-center animate-float w-full max-w-[90vw]">
           <div className="flex items-center justify-center gap-2 md:gap-4 mb-4">
              <div className="h-[1px] w-12 md:w-24 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
-             {/* Iridescent Crest */}
              <div className="border border-white/50 rounded-full p-1 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
                <div className="border border-white/50 rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-gradient-to-br from-white/10 to-transparent overflow-hidden">
-                 <span className="font-serif iridescent-text text-sm md:text-lg font-bold">R</span>
+                 <span className="font-serif iridescent-text text-sm md:text-lg font-black">R</span>
                </div>
              </div>
              <div className="h-[1px] w-12 md:w-24 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
           </div>
           
-          {/* Iridescent Main Logo */}
-          <h1 className="font-serif text-4xl sm:text-6xl md:text-8xl tracking-wider text-center w-full iridescent-text drop-shadow-[0_0_30px_rgba(255,255,255,0.15)] font-medium">
-            TopherLoring
-          </h1>
+          <div className="relative">
+            <h1 className="font-serif text-4xl sm:text-6xl md:text-8xl tracking-wider text-center w-full font-medium">
+              <span className="iridescent-text text-glow">TopherLoring</span>
+            </h1>
+          </div>
           
           <div className="flex items-center gap-3 md:gap-6 mt-4 md:mt-6">
-            <div className="h-[1px] w-8 md:w-16 bg-gradient-to-r from-transparent to-gray-500/50"></div>
-            <h2 className="text-[10px] md:text-xl tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 font-light whitespace-nowrap">
+            <div className="h-[1px] w-8 md:w-16 bg-gradient-to-r from-transparent via-gray-600 to-transparent"></div>
+            <h2 className="font-serif text-[10px] md:text-xl tracking-[0.4em] uppercase text-gray-400 font-light whitespace-nowrap opacity-80">
               Industries
             </h2>
-            <div className="h-[1px] w-8 md:w-16 bg-gradient-to-l from-transparent to-gray-500/50"></div>
+            <div className="h-[1px] w-8 md:w-16 bg-gradient-to-r from-transparent via-gray-600 to-transparent"></div>
           </div>
 
           <div className="mt-10 md:mt-12 flex flex-col items-center max-w-[85vw] md:max-w-xl text-center pointer-events-auto">
