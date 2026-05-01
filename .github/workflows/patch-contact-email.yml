@@ -1,0 +1,87 @@
+name: Patch contact email
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/patch-contact-email.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, 'fix: update contact form recipient') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch contact form recipient and Leadership order
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          html = path.read_text(encoding='utf-8')
+          original = html
+
+          html = re.sub(r'Version: v1\.4\.\d+', 'Version: v1.4.4', html, count=1)
+
+          if 'v1.4.4 — 2026.05.01' not in html:
+              html = html.replace(
+                  '    Changelog\n',
+                  '    Changelog\n'
+                  '    v1.4.4 — 2026.05.01\n'
+                  '    - Updated contact form mailto recipient to info@topherloring.com\n'
+                  '    - Replaced Direct Routing with Start a direct conversation\n'
+                  '    - Moved Leadership contact details after the contact form\n\n',
+                  1,
+              )
+
+          html = html.replace('mailto:inquiries@topherloring.com?subject=TopherLoring%20Inquiry', 'mailto:info@topherloring.com?subject=TopherLoring%20Inquiry')
+          html = html.replace('inquiries@topherloring.com', 'info@topherloring.com')
+          html = html.replace("mailto:inquiries@topherloring.com?subject=", "mailto:info@topherloring.com?subject=")
+          html = html.replace("window.location.href='mailto:inquiries@topherloring.com?subject='", "window.location.href='mailto:info@topherloring.com?subject='")
+
+          html = html.replace(
+              '<h3>Direct Routing</h3><p>For partnerships, investment, studio access, product inquiries, or direct opportunities, use the contact channel below.</p><p><a href="mailto:info@topherloring.com?subject=TopherLoring%20Inquiry">info@topherloring.com</a></p>',
+              '<h3>Start a direct conversation</h3><p>For partnerships, investment, studio access, product inquiries, or direct opportunities, use the form below to start the conversation.</p>'
+          )
+
+          leadership_match = re.search(r'(<template id="panel-leadership">.*?</template>)', html, flags=re.S)
+          if leadership_match:
+              leadership = leadership_match.group(1)
+              contact_match = re.search(r'(<div class="contact-block">.*?</div></div></div>)', leadership, flags=re.S)
+              form_match = re.search(r'(<form class="contact-form" data-contact-form>.*?</form>)', leadership, flags=re.S)
+              if contact_match and form_match and contact_match.start() < form_match.start():
+                  contact_block = contact_match.group(1)
+                  leadership = leadership[:contact_match.start()] + leadership[contact_match.end():]
+                  leadership = leadership.replace(form_match.group(1), form_match.group(1) + contact_block, 1)
+                  html = html[:leadership_match.start()] + leadership + html[leadership_match.end():]
+
+          if html == original:
+              raise SystemExit('No changes applied')
+
+          path.write_text(html, encoding='utf-8')
+          PY
+
+      - name: Remove obsolete one-shot workflows
+        run: |
+          rm -f .github/workflows/repair-blank-page.yml
+          rm -f .github/workflows/animate-brand-logo.yml
+          rm -f .github/workflows/patch-static-page.yml
+          rm -f .github/workflows/speed-up-logo-motion.yml
+          rm -f .github/workflows/reorder-leadership-contact.yml
+          rm -f .github/workflows/patch-contact-email.yml
+          rm -f tmp-test.txt
+
+      - name: Commit contact email update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: update contact form recipient"
+          git push
