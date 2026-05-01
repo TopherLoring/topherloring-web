@@ -1,20 +1,518 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!--
+      TopherLoring Industries Landing Page
+      Version: v1.1.2
+      Updated: 2026.05.01
+      Status: Review
+      Parent: TopherLoring Industries
+      Project: TopherLoring.com
+      Author: Christopher Rowden
+
+      Changelog
+      v1.1.2 — 2026.05.01
+      - Added static fallback landing page so Cloudflare Pages renders visible content even when the Vite build step is skipped
+      - Preserved Vite React mount path for proper build deployments
+      - Added external links to TopherLoring.com, MoneyMsg, and laundr.me
+    -->
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#050507" />
+    <meta name="color-scheme" content="dark" />
     <meta name="description" content="TopherLoring Industries is a private holding company operated by Christopher Rowden, building fintech infrastructure, consumer brands, publishing assets, and proprietary e-commerce systems." />
     <meta property="og:title" content="TopherLoring Industries" />
     <meta property="og:description" content="Private holding company for active IP development, fintech infrastructure, and proprietary e-commerce ecosystems." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.TopherLoring.com/" />
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23050507'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%23ffffff' stroke-opacity='.55' stroke-width='2'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='Georgia,serif' font-size='23' fill='%23ffffff'%3ER%3C/text%3E%3C/svg%3E" />
     <title>TopherLoring Industries</title>
+    <style>
+      :root {
+        --bg: #050507;
+        --panel: rgba(10, 10, 12, 0.74);
+        --panel-strong: rgba(15, 15, 18, 0.92);
+        --text: #f7f7fb;
+        --muted: #a6a6b3;
+        --line: rgba(255, 255, 255, 0.12);
+        --cyan: #00f8f8;
+        --pink: #ff0088;
+        --amber: #fbbf24;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body {
+        overflow-x: hidden;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      #root:not(:empty) ~ #static-fallback {
+        display: none;
+      }
+
+      #static-fallback {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 20% 0%, rgba(192, 132, 252, 0.22), transparent 30rem),
+          radial-gradient(circle at 78% 18%, rgba(0, 248, 248, 0.14), transparent 24rem),
+          radial-gradient(circle at 50% 100%, rgba(251, 191, 36, 0.1), transparent 28rem),
+          linear-gradient(180deg, #050507 0%, #09090d 52%, #050507 100%);
+      }
+
+      #static-fallback::before,
+      #static-fallback::after {
+        content: "";
+        position: fixed;
+        width: 52vw;
+        aspect-ratio: 1;
+        border-radius: 999px;
+        filter: blur(120px);
+        opacity: 0.32;
+        pointer-events: none;
+        animation: drift 18s ease-in-out infinite;
+      }
+
+      #static-fallback::before {
+        top: -14vw;
+        left: 18vw;
+        background: #c084fc;
+      }
+
+      #static-fallback::after {
+        right: -16vw;
+        bottom: -20vw;
+        background: #00f8f8;
+        animation-duration: 24s;
+        animation-direction: reverse;
+      }
+
+      @keyframes drift {
+        0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+        50% { transform: translate3d(7vw, -4vh, 0) scale(1.12); }
+      }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes shimmer {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
+      .fallback-shell {
+        position: relative;
+        z-index: 1;
+        width: min(1180px, calc(100% - 32px));
+        min-height: 100vh;
+        margin: 0 auto;
+        display: grid;
+        align-content: center;
+        gap: 28px;
+        padding: 96px 0 56px;
+      }
+
+      .fallback-topbar {
+        position: fixed;
+        z-index: 4;
+        top: 0;
+        left: 0;
+        right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(5, 5, 7, 0.68);
+        backdrop-filter: blur(18px);
+      }
+
+      .fallback-topbar-inner {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .fallback-wordmark {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        font-family: Georgia, ui-serif, serif;
+        font-size: 18px;
+        letter-spacing: 0.02em;
+      }
+
+      .fallback-mark {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        border-radius: 999px;
+        color: #fff;
+        box-shadow: 0 0 24px rgba(255, 255, 255, 0.08);
+      }
+
+      .fallback-nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 9px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 9px 12px;
+        color: #dadbe3;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
+      }
+
+      .chip:hover,
+      .chip:focus-visible {
+        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.38);
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        outline: none;
+      }
+
+      .chip-cyan {
+        border-color: rgba(0, 248, 248, 0.26);
+        color: #93ffff;
+        background: rgba(0, 248, 248, 0.08);
+      }
+
+      .chip-pink {
+        border-color: rgba(255, 0, 136, 0.26);
+        color: #ff8fcb;
+        background: rgba(255, 0, 136, 0.08);
+      }
+
+      .fallback-hero {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: clamp(28px, 6vw, 80px);
+        align-items: center;
+      }
+
+      .fallback-ring {
+        position: absolute;
+        inset: auto auto 14% 50%;
+        width: min(88vw, 760px);
+        aspect-ratio: 1;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        transform: translateX(-50%);
+        animation: spin 70s linear infinite;
+        pointer-events: none;
+      }
+
+      .fallback-ring::before,
+      .fallback-ring::after {
+        content: "";
+        position: absolute;
+        inset: 12%;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: inherit;
+      }
+
+      .fallback-ring::after {
+        inset: -28%;
+        border-color: rgba(255, 255, 255, 0.035);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        width: fit-content;
+        margin-bottom: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.045);
+        color: #d8d9e2;
+        padding: 8px 13px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 780px;
+        margin: 0;
+        font-family: Georgia, ui-serif, serif;
+        font-size: clamp(48px, 8vw, 96px);
+        font-weight: 500;
+        line-height: 1.02;
+        letter-spacing: 0.015em;
+      }
+
+      .iridescent {
+        background: linear-gradient(-45deg, #ffffff, #a5f3fc, #38bdf8, #818cf8, #c084fc, #f472b6, #fbbf24, #ffffff);
+        background-size: 240% 240%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: shimmer 6s ease-in-out infinite;
+      }
+
+      .subtitle {
+        max-width: 640px;
+        margin: 22px 0 0;
+        color: var(--muted);
+        font-size: clamp(16px, 2vw, 20px);
+        line-height: 1.65;
+      }
+
+      .fallback-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 13px;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 12px 18px;
+        color: #fff;
+        font-weight: 800;
+        transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+      }
+
+      .button:hover,
+      .button:focus-visible {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.13);
+        border-color: rgba(255, 255, 255, 0.34);
+        outline: none;
+      }
+
+      .button-primary {
+        background: #fff;
+        color: #07070a;
+      }
+
+      .button-primary:hover,
+      .button-primary:focus-visible {
+        background: #dbeafe;
+        color: #000;
+      }
+
+      .fallback-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        border-radius: 28px;
+        background: var(--panel);
+        box-shadow: 0 26px 70px rgba(0, 0, 0, 0.42);
+        padding: 26px;
+        backdrop-filter: blur(22px);
+      }
+
+      .fallback-card::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+        transform: translateX(-120%);
+        animation: card-sheen 5.2s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      @keyframes card-sheen {
+        0%, 48% { transform: translateX(-120%); }
+        82%, 100% { transform: translateX(120%); }
+      }
+
+      .card-label {
+        color: #c5c7d2;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .portfolio-list {
+        display: grid;
+        gap: 14px;
+        margin-top: 22px;
+      }
+
+      .portfolio-item {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 13px;
+        align-items: start;
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 17px;
+        background: rgba(255, 255, 255, 0.035);
+        padding: 14px;
+      }
+
+      .portfolio-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.045);
+      }
+
+      .portfolio-item strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #fff;
+      }
+
+      .portfolio-item span {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .brand-money { color: #fff; }
+      .brand-msg { color: var(--cyan); text-shadow: 0 0 14px rgba(0, 248, 248, 0.32); }
+      .brand-laundr-root { color: #fff; }
+      .brand-laundr-dot { color: var(--pink); text-shadow: 0 0 14px rgba(255, 0, 136, 0.32); }
+
+      .fallback-footer {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 22px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 860px) {
+        .fallback-topbar-inner {
+          min-height: 86px;
+          align-items: flex-start;
+          flex-direction: column;
+          justify-content: center;
+          padding: 12px 0;
+        }
+
+        .fallback-hero {
+          grid-template-columns: 1fr;
+        }
+
+        .fallback-card {
+          max-width: 540px;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .fallback-shell {
+          padding-top: 128px;
+        }
+
+        .chip {
+          font-size: 10px;
+          letter-spacing: 0.12em;
+          padding: 8px 10px;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+
+    <div id="static-fallback">
+      <header class="fallback-topbar">
+        <div class="fallback-topbar-inner">
+          <a class="fallback-wordmark" href="https://www.TopherLoring.com/" aria-label="TopherLoring.com">
+            <span class="fallback-mark">R</span>
+            <span>TopherLoring Industries</span>
+          </a>
+          <nav class="fallback-nav" aria-label="Portfolio links">
+            <a class="chip" href="https://www.TopherLoring.com/">TopherLoring.com</a>
+            <a class="chip chip-cyan" href="https://moneymsg.laundr.me/"><span class="brand-money">Money</span><span class="brand-msg">Msg</span></a>
+            <a class="chip chip-pink" href="https://www.laundr.me/"><span class="brand-laundr-root">laundr</span><span class="brand-laundr-dot">.me</span></a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="fallback-shell">
+        <div class="fallback-ring" aria-hidden="true"></div>
+        <section class="fallback-hero">
+          <div>
+            <div class="eyebrow">Private Holding Company</div>
+            <h1><span class="iridescent">TopherLoring</span><br />Industries</h1>
+            <p class="subtitle">A private holding company driving active IP development, fintech infrastructure, consumer brands, publishing assets, and proprietary e-commerce ecosystems through lean architecture and rapid in-house execution.</p>
+            <div class="fallback-actions">
+              <a class="button button-primary" href="mailto:inquiries@topherloring.com?subject=TopherLoring%20Inquiry">Contact</a>
+              <a class="button" href="https://moneymsg.laundr.me/">Open MoneyMsg</a>
+              <a class="button" href="https://www.laundr.me/">Open laundr.me</a>
+            </div>
+          </div>
+
+          <aside class="fallback-card" aria-label="Portfolio preview">
+            <div class="card-label">Active infrastructure</div>
+            <div class="portfolio-list">
+              <a class="portfolio-item" href="https://www.laundr.me/">
+                <span class="portfolio-icon">∞</span>
+                <span><strong><span class="brand-laundr-root">laundr</span><span class="brand-laundr-dot">.me</span></strong><span>Operating system for independent work: payments, bookings, discovery, CRM, and professional trust tooling.</span></span>
+              </a>
+              <a class="portfolio-item" href="https://moneymsg.laundr.me/">
+                <span class="portfolio-icon">$</span>
+                <span><strong><span class="brand-money">Money</span><span class="brand-msg">Msg</span></strong><span>Conversation-native payment product connected to the laundr.me fintech ecosystem.</span></span>
+              </a>
+              <div class="portfolio-item">
+                <span class="portfolio-icon">↗</span>
+                <span><strong>Portfolio engine</strong><span>Analytics, publishing, apparel, wellness, e-commerce, and specialized operating ventures.</span></span>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <footer class="fallback-footer">
+          <span>© 2026 TopherLoring Industries. All rights reserved.</span>
+          <span>Operated by Christopher Rowden · Universal City, TX</span>
+        </footer>
+      </main>
+    </div>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
