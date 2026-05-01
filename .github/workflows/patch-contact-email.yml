@@ -1,4 +1,4 @@
-name: Patch contact email
+name: Force Leadership drawer patch
 
 on:
   push:
@@ -13,12 +13,12 @@ permissions:
 
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, 'fix: update contact form recipient') }}
+    if: ${{ !contains(github.event.head_commit.message, 'fix: update Leadership drawer content order') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Patch contact form recipient and Leadership order
+      - name: Patch Leadership drawer directly
         run: |
           python <<'PY'
           from pathlib import Path
@@ -28,42 +28,56 @@ jobs:
           html = path.read_text(encoding='utf-8')
           original = html
 
-          html = re.sub(r'Version: v1\.4\.\d+', 'Version: v1.4.4', html, count=1)
+          html = re.sub(r'Version: v1\.4\.\d+', 'Version: v1.4.5', html, count=1)
 
-          if 'v1.4.4 — 2026.05.01' not in html:
+          if 'v1.4.5 — 2026.05.01' not in html:
               html = html.replace(
                   '    Changelog\n',
                   '    Changelog\n'
-                  '    v1.4.4 — 2026.05.01\n'
-                  '    - Updated contact form mailto recipient to info@topherloring.com\n'
+                  '    v1.4.5 — 2026.05.01\n'
                   '    - Replaced Direct Routing with Start a direct conversation\n'
-                  '    - Moved Leadership contact details after the contact form\n\n',
+                  '    - Moved Leadership contact details to the end of the drawer\n'
+                  '    - Updated contact form recipient to info@topherloring.com\n\n',
                   1,
               )
 
-          html = html.replace('mailto:inquiries@topherloring.com?subject=TopherLoring%20Inquiry', 'mailto:info@topherloring.com?subject=TopherLoring%20Inquiry')
           html = html.replace('inquiries@topherloring.com', 'info@topherloring.com')
+          html = html.replace('mailto:inquiries@topherloring.com?subject=', 'mailto:info@topherloring.com?subject=')
           html = html.replace("mailto:inquiries@topherloring.com?subject=", "mailto:info@topherloring.com?subject=")
-          html = html.replace("window.location.href='mailto:inquiries@topherloring.com?subject='", "window.location.href='mailto:info@topherloring.com?subject='")
-
-          html = html.replace(
-              '<h3>Direct Routing</h3><p>For partnerships, investment, studio access, product inquiries, or direct opportunities, use the contact channel below.</p><p><a href="mailto:info@topherloring.com?subject=TopherLoring%20Inquiry">info@topherloring.com</a></p>',
-              '<h3>Start a direct conversation</h3><p>For partnerships, investment, studio access, product inquiries, or direct opportunities, use the form below to start the conversation.</p>'
+          html = re.sub(
+              r"window\.location\.href='mailto:[^']+\?subject='",
+              "window.location.href='mailto:info@topherloring.com?subject='",
+              html,
           )
 
-          leadership_match = re.search(r'(<template id="panel-leadership">.*?</template>)', html, flags=re.S)
-          if leadership_match:
-              leadership = leadership_match.group(1)
-              contact_match = re.search(r'(<div class="contact-block">.*?</div></div></div>)', leadership, flags=re.S)
-              form_match = re.search(r'(<form class="contact-form" data-contact-form>.*?</form>)', leadership, flags=re.S)
-              if contact_match and form_match and contact_match.start() < form_match.start():
-                  contact_block = contact_match.group(1)
-                  leadership = leadership[:contact_match.start()] + leadership[contact_match.end():]
-                  leadership = leadership.replace(form_match.group(1), form_match.group(1) + contact_block, 1)
-                  html = html[:leadership_match.start()] + leadership + html[leadership_match.end():]
+          leadership_replacement = '''<template id="panel-leadership"><h2 class="drawer-title leadership-title" id="drawer-title">Leadership</h2><p class="drawer-subtitle">Executive overview and direct contact channels.</p><div class="drawer-section"><div class="card-grid"><article class="card"><span class="card-icon">R</span><h3>TopherLoring Industries</h3><span class="tag">Private Holding Company</span><p>Operated by Christopher Loring Rowden. TopherLoring Industries prioritizes lean architecture, rapid deployment, and in-house execution across technology, consumer goods, publishing, and specialized operating ventures.</p></article><article class="card"><span class="card-icon">↗</span><h3>Start a direct conversation</h3><p>For partnerships, investment, studio access, product inquiries, or direct opportunities, use the form below to start the conversation.</p></article></div></div><form class="contact-form" data-contact-form><h3>Start a direct conversation</h3><p>Use this form for partnerships, investment, studio access, product inquiries, or direct opportunities.</p><div class="form-grid"><div class="field"><label for="contact-name">Name</label><input id="contact-name" name="name" type="text" autocomplete="name" placeholder="Name / Entity" required></div><div class="field"><label for="contact-email">Email</label><input id="contact-email" name="email" type="email" autocomplete="email" placeholder="Email Address" required></div><div class="field"><label for="contact-phone">Phone</label><input id="contact-phone" name="phone" type="tel" autocomplete="tel" placeholder="Optional"></div><div class="field"><label for="contact-subject">Subject</label><input id="contact-subject" name="subject" type="text" placeholder="Nature of Inquiry" required></div><div class="field full"><label for="contact-message">Message</label><textarea id="contact-message" name="message" placeholder="Enter transmission..." required></textarea></div></div><button class="contact-submit" type="submit">Send Inquiry</button></form><div class="contact-block"><div class="contact-row"><span class="card-icon">⌖</span><div><strong>Headquarters</strong><span>Universal City, TX<br>United States</span></div></div><div class="contact-row"><span class="card-icon">✉</span><div><strong>Contact</strong><a href="mailto:info@topherloring.com?subject=TopherLoring%20Inquiry">info@topherloring.com</a></div></div><div class="contact-row"><span class="card-icon">⌁</span><div><strong>Web</strong><a href="https://www.TopherLoring.com/">www.TopherLoring.com</a></div></div></div></template>'''
+
+          html, count = re.subn(
+              r'<template id="panel-leadership">.*?</template>',
+              leadership_replacement,
+              html,
+              count=1,
+              flags=re.S,
+          )
+
+          if count != 1:
+              raise SystemExit('Leadership template replacement failed')
+
+          if '.contact-block{display:grid;gap:18px;margin-top:28px}' in html:
+              html = html.replace(
+                  '.contact-block{display:grid;gap:18px;margin-top:28px}',
+                  '.contact-block{display:grid;gap:18px;margin-top:34px;padding-top:26px;border-top:1px solid rgba(var(--drawer-accent-rgb),.14)}',
+                  1,
+              )
+
+          if 'animation:chromaticFlow 24s linear infinite' in html:
+              html = html.replace('animation:chromaticFlow 24s linear infinite', 'animation:chromaticFlow 21s linear infinite', 1)
+          if 'animation:chromaticFlow 30s linear infinite' in html:
+              html = html.replace('animation:chromaticFlow 30s linear infinite', 'animation:chromaticFlow 26s linear infinite', 1)
+          html = html.replace('animation-duration:45s', 'animation-duration:40s')
 
           if html == original:
-              raise SystemExit('No changes applied')
+              raise SystemExit('No index.html changes applied')
 
           path.write_text(html, encoding='utf-8')
           PY
@@ -78,10 +92,10 @@ jobs:
           rm -f .github/workflows/patch-contact-email.yml
           rm -f tmp-test.txt
 
-      - name: Commit contact email update
+      - name: Commit Leadership drawer update
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "fix: update contact form recipient"
+          git commit -m "fix: update Leadership drawer content order"
           git push
