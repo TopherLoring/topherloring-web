@@ -1,0 +1,51 @@
+name: Speed up logo motion
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/speed-up-logo-motion.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, 'fix: slightly speed up logo motion') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch logo animation timing
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          path = Path('index.html')
+          html = path.read_text(encoding='utf-8')
+
+          html = html.replace('Version: v1.4.0', 'Version: v1.4.1', 1)
+          html = html.replace(
+              '    Changelog\n    v1.4.0 — 2026.05.01',
+              '    Changelog\n    v1.4.1 — 2026.05.01\n    - Slightly increased the TopherLoring logo color-flow speed\n\n    v1.4.0 — 2026.05.01',
+              1
+          )
+          html = html.replace('animation:chromaticFlow 24s linear infinite', 'animation:chromaticFlow 21s linear infinite')
+          html = html.replace('animation:chromaticFlow 30s linear infinite', 'animation:chromaticFlow 26s linear infinite')
+          html = html.replace('animation-duration:45s', 'animation-duration:40s')
+
+          path.write_text(html, encoding='utf-8')
+          PY
+
+      - name: Remove one-shot workflow
+        run: rm -f .github/workflows/speed-up-logo-motion.yml
+
+      - name: Commit timing update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/speed-up-logo-motion.yml
+          git commit -m "fix: slightly speed up logo motion"
+          git push

@@ -1,0 +1,92 @@
+name: Reorder Leadership contact content
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/reorder-leadership-contact.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, 'fix: reorder Leadership contact content') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch Leadership drawer copy and order
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          html = path.read_text(encoding='utf-8')
+          original = html
+
+          html = re.sub(r'Version: v1\.4\.\d+', 'Version: v1.4.2', html, count=1)
+
+          changelog_anchor = '    Changelog\n'
+          changelog_entry = (
+              '    Changelog\n'
+              '    v1.4.2 — 2026.05.01\n'
+              '    - Replaced Direct Routing copy with Start a direct conversation\n'
+              '    - Moved Leadership contact details after the contact form\n\n'
+          )
+          if 'v1.4.2 — 2026.05.01' not in html:
+              html = html.replace(changelog_anchor, changelog_entry, 1)
+
+          html = html.replace(
+              '<h3>Direct Routing</h3><p>For partnerships, investment, studio access, product inquiries, or direct opportunities, use the contact channel below.</p><p><a href="mailto:inquiries@topherloring.com?subject=TopherLoring%20Inquiry">inquiries@topherloring.com</a></p>',
+              '<h3>Start a direct conversation</h3><p>For partnerships, investment, studio access, product inquiries, or direct opportunities, use the form below to start the conversation.</p>'
+          )
+
+          leadership_match = re.search(r'(<template id="panel-leadership">.*?</template>)', html, flags=re.S)
+          if not leadership_match:
+              raise SystemExit('Leadership template not found')
+
+          leadership = leadership_match.group(1)
+          contact_match = re.search(r'(<div class="contact-block">.*?</div></div></div>)<form class="contact-form"', leadership, flags=re.S)
+          form_match = re.search(r'(<form class="contact-form" data-contact-form>.*?</form>)</template>', leadership, flags=re.S)
+
+          if contact_match and form_match:
+              contact_block = contact_match.group(1)
+              form_block = form_match.group(1)
+              leadership = leadership.replace(contact_block, '', 1)
+              leadership = leadership.replace(form_block + '</template>', form_block + contact_block + '</template>', 1)
+          elif '<form class="contact-form" data-contact-form>' not in leadership:
+              raise SystemExit('Leadership contact form not found')
+
+          html = html[:leadership_match.start()] + leadership + html[leadership_match.end():]
+
+          # Remove obsolete one-shot workflows/files when present.
+          for obsolete in [
+              Path('.github/workflows/repair-blank-page.yml'),
+              Path('.github/workflows/animate-brand-logo.yml'),
+              Path('.github/workflows/patch-static-page.yml'),
+              Path('.github/workflows/speed-up-logo-motion.yml'),
+              Path('tmp-test.txt'),
+          ]:
+              if obsolete.exists():
+                  obsolete.unlink()
+
+          if html == original:
+              raise SystemExit('No index.html changes applied')
+
+          path.write_text(html, encoding='utf-8')
+          PY
+
+      - name: Remove one-shot workflow
+        run: rm -f .github/workflows/reorder-leadership-contact.yml
+
+      - name: Commit Leadership drawer update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: reorder Leadership contact content"
+          git push
